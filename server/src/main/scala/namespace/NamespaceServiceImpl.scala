@@ -521,7 +521,7 @@ class NamespaceServiceImpl extends NamespaceServiceGrpc.NamespaceService:
             Future.successful(
                 GetBundlesResponse(
                     status = Some(Status(code = Code.OK.index)),
-                    bundles = bundles.getBoundaries.asScala.toSeq.sliding(2).map { case List(a, b) => s"${a}_$b" }.toSeq
+                    bundles = Option(bundles.getBoundaries).map(_.asScala.toSeq).getOrElse(Seq.empty).sliding(2).map { case List(a, b) => s"${a}_$b" }.toSeq
                 )
             )
         } catch {

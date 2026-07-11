@@ -1,4 +1,5 @@
 import * as Notifications from '../../../../app/contexts/Notifications';
+import { copyToClipboard, copyFailureMessage } from "../../../../app/clipboard";
 import s from './Field.module.css';
 import { tooltipId } from '../../../Tooltip/Tooltip';
 
@@ -11,7 +12,7 @@ export type FieldProps = {
   valueHref?: string,
 }
 const Field: React.FC<FieldProps> = (props) => {
-  const { notifySuccess } = Notifications.useContext();
+  const { notifySuccess, notifyWarn } = Notifications.useContext();
   const valueContent = props.value === undefined ? <div className={s.NoData}>-</div> : props.value;
 
   const copyRawValue = () => {
@@ -19,8 +20,10 @@ const Field: React.FC<FieldProps> = (props) => {
       return;
     }
 
-    navigator.clipboard.writeText(props.rawValue);
-    notifySuccess(`${props.title} value copied to clipboard.`);
+    void copyToClipboard(props.rawValue).then((ok) => {
+      if (ok) notifySuccess(`${props.title} value copied to clipboard.`);
+      else notifyWarn(copyFailureMessage());
+    });
   }
 
   const dataTooltipProps = props.isShowTooltips ? {

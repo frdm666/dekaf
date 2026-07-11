@@ -117,7 +117,9 @@ object compiler:
         val descriptorSetOutContent = os.read.inputStream(descriptorSetOut)
         val descriptorSet = FileDescriptorSet.parseFrom(descriptorSetOutContent)
 
-        val currentProtoFile = descriptorSet.getFileList.asScala.find(fi => fi.getName == f.relativePath).get
+        val currentProtoFile = descriptorSet.getFileList.asScala.find(fi => fi.getName == f.relativePath) match
+            case Some(fd) => fd
+            case None     => return (f.relativePath, Left(new Exception(s"Compiled descriptor set has no file matching \"${f.relativePath}\"")))
         val fileProtoCache = descriptorSet.getFileList.asScala.map(f => (f.getName, f)).toMap
         val fileDescriptor = buildProtobufNativeFilesDescriptor(currentProtoFile, fileProtoCache)
         val messageNames = fileDescriptor.getMessageTypes.asScala.map(t => t.getName).toSeq

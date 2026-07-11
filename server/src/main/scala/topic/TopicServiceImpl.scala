@@ -487,7 +487,8 @@ class TopicServiceImpl extends pb.TopicServiceGrpc.TopicService:
                     request.isEarliestTimeInBacklog
                 )
 
-                partitionedTopicStats.getSubscriptions.get(request.subscriptionName)
+                Option(partitionedTopicStats.getSubscriptions.get(request.subscriptionName))
+                    .getOrElse(throw new Exception(s"Subscription \"${request.subscriptionName}\" not found on topic \"${request.topicFqn}\""))
             else
                 val topicStats = adminClient.topics().getStats(
                     request.topicFqn,
@@ -496,7 +497,8 @@ class TopicServiceImpl extends pb.TopicServiceGrpc.TopicService:
                     request.isEarliestTimeInBacklog
                 )
 
-                topicStats.getSubscriptions.get(request.subscriptionName)
+                Option(topicStats.getSubscriptions.get(request.subscriptionName))
+                    .getOrElse(throw new Exception(s"Subscription \"${request.subscriptionName}\" not found on topic \"${request.topicFqn}\""))
         match
             case Failure(err: Throwable) =>
                 val status = Status(code = Code.FAILED_PRECONDITION.index, message = err.getMessage)
@@ -519,7 +521,7 @@ class TopicServiceImpl extends pb.TopicServiceGrpc.TopicService:
                 val status = Status(code = Code.OK.index)
                 Future.successful(GetSubscriptionPropertiesResponse(
                     status = Some(status),
-                    properties = properties.asScala.toMap
+                    properties = Option(properties).map(_.asScala.toMap).getOrElse(Map.empty)
                 ))
 
 

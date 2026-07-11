@@ -28,7 +28,7 @@ class TopicPoliciesServiceImpl extends pb.TopicPoliciesServiceGrpc.TopicPolicies
             case _ => None
 
         try {
-            val backlogQuotaMap = adminClient.topicPolicies(request.isGlobal).getBacklogQuotaMap(request.topic, false).asScala.toMap
+            val backlogQuotaMap = Option(adminClient.topicPolicies(request.isGlobal).getBacklogQuotaMap(request.topic, false)).map(_.asScala.toMap).getOrElse(Map.empty)
             val destinationStorageBacklogQuotaPb = backlogQuotaMap.get(BacklogQuotaType.destination_storage) match
                 case Some(quota) =>
                     Some(

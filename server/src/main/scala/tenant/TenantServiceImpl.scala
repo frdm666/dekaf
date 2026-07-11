@@ -78,9 +78,12 @@ class TenantServiceImpl extends pb.TenantServiceGrpc.TenantService:
         logger.debug(s"Getting tenants: ${request}")
         val adminClient = RequestContext.pulsarAdmin.get()
 
+        // Pulsar returns null (not an empty set) for adminRoles/allowedClusters when a tenant was created
+        // without them (valid Pulsar usage). Null-guard like the rest of the codebase (see
+        // clusters/conversions.scala, brokers/BrokersServiceImpl.scala) or `.asScala` NPEs.
         def tenantInfoToPb(tenantInfo: TenantInfo): pb.TenantInfo = pb.TenantInfo(
-            adminRoles = tenantInfo.getAdminRoles.asScala.toSeq,
-            allowedClusters = tenantInfo.getAllowedClusters.asScala.toSeq
+            adminRoles = Option(tenantInfo.getAdminRoles).map(_.asScala.toSeq).getOrElse(Seq.empty),
+            allowedClusters = Option(tenantInfo.getAllowedClusters).map(_.asScala.toSeq).getOrElse(Seq.empty)
         )
 
         given ExecutionContext = ExecutionContext.global

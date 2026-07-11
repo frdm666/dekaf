@@ -45,7 +45,9 @@ object UseLatestTopicSchema:
         val schemaInfo =
             if msgSchemaVersion.isEmpty
             then return Right(bytesToJsonString(msgData))
-            else schemasByVersion.get(msgSchemaVersion.get)
+            else schemasByVersion.get.get(msgSchemaVersion.get) match
+                case Some(si) => si
+                case None     => return Right(bytesToJsonString(msgData))
 
         schemaInfo.getType match
             case SchemaType.AVRO => avro.converters.toJson(schemaInfo.getSchema, msgData).map(String(_, StandardCharsets.UTF_8))
@@ -62,8 +64,8 @@ object UseLatestTopicSchema:
             case SchemaType.INT16     => bytesToInt16(msgData).map(_.asJson.toString)
             case SchemaType.INT32     => bytesToInt32(msgData).map(_.asJson.toString)
             case SchemaType.INT64     => bytesToInt64(msgData).map(_.asJson.toString)
-            case SchemaType.FLOAT     => bytesToFloat32(msgData).map(_.asJson.asNumber.get.toString)
-            case SchemaType.DOUBLE    => bytesToFloat64(msgData).map(_.asJson.asNumber.get.toString)
+            case SchemaType.FLOAT     => bytesToFloat32(msgData).map(v => v.asJson.asNumber.map(_.toString).getOrElse(v.toString))
+            case SchemaType.DOUBLE    => bytesToFloat64(msgData).map(v => v.asJson.asNumber.map(_.toString).getOrElse(v.toString))
             case SchemaType.STRING    => Right(bytesToJsonString(msgData))
 //            case SchemaType.BYTES => the message schema version is empty in this case and is handled in the code above
 //            case SchemaType.NONE => the message schema version is empty in this case and is handled in the code above

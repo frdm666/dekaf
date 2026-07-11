@@ -3,6 +3,7 @@ import useSWR, { SWRConfiguration } from 'swr';
 import s from './NavigationTree.module.css'
 import * as AppContext from '../../../app/contexts/AppContext';
 import * as Notifications from '../../../app/contexts/Notifications';
+import { copyToClipboard, copyFailureMessage } from "../../../app/clipboard";
 import * as GrpcClient from '../../../app/contexts/GrpcClient/GrpcClient';
 import * as namespacePb from '../../../../grpc-web/tools/teal/pulsar/ui/namespace/v1/namespace_pb';
 import * as topicsPb from '../../../../grpc-web/tools/teal/pulsar/ui/topic/v1/topic_pb';
@@ -90,7 +91,7 @@ export type PulsarTenantProps = {
   isFetchData: boolean;
 }
 export const PulsarTenant: React.FC<PulsarTenantProps> = (props) => {
-  const { notifyError, notifySuccess } = Notifications.useContext();
+  const { notifyError, notifySuccess, notifyWarn } = Notifications.useContext();
   const { namespaceServiceClient } = GrpcClient.useContext();
 
   const { data: namespaces, error: namespacesError } = useSWR<string[]>(
@@ -142,8 +143,10 @@ export const PulsarTenant: React.FC<PulsarTenantProps> = (props) => {
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            navigator.clipboard.writeText(resourceFqn);
-            notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+            void copyToClipboard(resourceFqn).then((ok) => {
+              if (ok) notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+              else notifyWarn(<span>{copyFailureMessage()}<br /><strong>{resourceFqn}</strong></span>);
+            });
           }}
           svgIcon={copyIcon}
           type={"regular"}
@@ -167,7 +170,7 @@ type PulsarNamespaceProps = {
 }
 
 export const PulsarNamespace: React.FC<PulsarNamespaceProps> = (props) => {
-  const { notifyError, notifySuccess } = Notifications.useContext();
+  const { notifyError, notifySuccess, notifyWarn } = Notifications.useContext();
   const { topicServiceClient } = GrpcClient.useContext();
 
   const { data: nonPartitionedTopicFqns, error: nonPartitionedTopicFqnsError } = useSWR<string[]>(
@@ -246,8 +249,10 @@ export const PulsarNamespace: React.FC<PulsarNamespaceProps> = (props) => {
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            navigator.clipboard.writeText(resourceFqn);
-            notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+            void copyToClipboard(resourceFqn).then((ok) => {
+              if (ok) notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+              else notifyWarn(<span>{copyFailureMessage()}<br /><strong>{resourceFqn}</strong></span>);
+            });
           }}
           svgIcon={copyIcon}
           type={"regular"}
@@ -289,8 +294,10 @@ export const PulsarTopic: React.FC<PulsarTopicProps> = (props) => {
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            navigator.clipboard.writeText(resourceFqn);
-            notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+            void copyToClipboard(resourceFqn).then((ok) => {
+              if (ok) notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+              else notifyWarn(<span>{copyFailureMessage()}<br /><strong>{resourceFqn}</strong></span>);
+            });
           }}
           svgIcon={copyIcon}
           type={"regular"}
@@ -332,8 +339,10 @@ export const PulsarTopicPartition: React.FC<PulsarTopicPartitionProps> = (props)
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            navigator.clipboard.writeText(resourceFqn);
-            notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+            void copyToClipboard(resourceFqn).then((ok) => {
+              if (ok) notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+              else notifyWarn(<span>{copyFailureMessage()}<br /><strong>{resourceFqn}</strong></span>);
+            });
           }}
           svgIcon={copyIcon}
           type={"regular"}

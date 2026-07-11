@@ -4,6 +4,7 @@ import s from './Notifications.module.css';
 import SmallButton from '../../ui/SmallButton/SmallButton';
 import copyIcon from './copy.svg';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { copyToClipboard, copyFailureMessage } from '../clipboard';
 
 export const toastContainerId = '__dekaf__toast-container';
 
@@ -24,8 +25,10 @@ const withCopyButton = (content: ReactNode) => {
           const div = document.createElement('div');
           div.innerHTML = html;
           const text = div.innerText;
-          navigator.clipboard.writeText(text);
-          toast.success(<span>The message has been copied to clipboard.</span>, { containerId: toastContainerId });
+          void copyToClipboard(text).then((ok) => {
+            if (ok) toast.success(<span>The message has been copied to clipboard.</span>, { containerId: toastContainerId });
+            else toast.warn(copyFailureMessage(), { containerId: toastContainerId });
+          });
         }}
         svgIcon={copyIcon}
         type={"regular"}

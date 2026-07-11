@@ -3,6 +3,7 @@ import s from "./BreadCrumbs.module.css";
 import { TenantIcon, NamespaceIcon, TopicIcon, InstanceIcon, SubscriptionIcon, PageNotFoundIcon } from "../Icons/Icons";
 import * as AppContext from '../../app/contexts/AppContext';
 import * as Notifications from "../../app/contexts/Notifications";
+import { copyToClipboard, copyFailureMessage } from "../../app/clipboard";
 import SvgIcon from "../SvgIcon/SvgIcon";
 import arrowIcon from "./arrow.svg";
 import copyIcon from "./copy.svg";
@@ -45,7 +46,7 @@ const BreadCrumbs: React.FC<BreadCrumbsProps> = (props) => {
   const topic = props.crumbs[3]?.value;
   const topicPartition = props.crumbs[4]?.value;
 
-  const { notifySuccess } = Notifications.useContext();
+  const { notifySuccess, notifyWarn } = Notifications.useContext();
   const { pathname } = useLocation();
 
   const renderCrumb = (crumb: Crumb, i: number, total: number) => {
@@ -203,8 +204,10 @@ const BreadCrumbs: React.FC<BreadCrumbsProps> = (props) => {
             <SmallButton
               onClick={() => {
                 if (resourceFqn !== undefined) {
-                  navigator.clipboard.writeText(resourceFqn);
-                  notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+                  void copyToClipboard(resourceFqn).then((ok) => {
+                    if (ok) notifySuccess(<span>Fully qualified resource name copied to clipboard:<br /><strong>{resourceFqn}</strong></span>, Date.now().toString());
+                    else notifyWarn(<span>{copyFailureMessage()}<br /><strong>{resourceFqn}</strong></span>);
+                  });
                 }
               }}
               svgIcon={copyIcon}

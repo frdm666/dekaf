@@ -153,9 +153,11 @@ class ConsumerServiceImpl extends ConsumerServiceGrpc.ConsumerService:
 
     override def resolveTopicSelector(request: ResolveTopicSelectorRequest): Future[ResolveTopicSelectorResponse] =
         val adminClient = RequestContext.pulsarAdmin.get()
-        val topicSelector = TopicSelector.fromPb(request.topicSelector.get)
 
-        Try(topicSelector.getNonPartitionedTopics(adminClient)) match
+        Try {
+            val topicSelector = TopicSelector.fromPb(request.topicSelector.get)
+            topicSelector.getNonPartitionedTopics(adminClient)
+        } match
             case Success(topicFqns) =>
                 val status: Status = Status(code = Code.OK.index)
                 val response = ResolveTopicSelectorResponse(status = Some(status), topicFqns = topicFqns)

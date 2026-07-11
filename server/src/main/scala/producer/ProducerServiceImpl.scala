@@ -224,6 +224,7 @@ def jsonToValue(schemaInfo: SchemaInfo, jsonAsBytes: Array[Byte]): Either[Throwa
         case SchemaType.FLOAT =>
             val jsonString = String(jsonAsBytes, "UTF-8")
             val n = primitives.Floats.tryParse(jsonString)
+            if n == null then return Left(new Exception(s"Unable to parse FLOAT value from the given JSON: $jsonString"))
 
             val MinValue = Float.MinValue
             val MaxValue = Float.MaxValue
@@ -233,6 +234,7 @@ def jsonToValue(schemaInfo: SchemaInfo, jsonAsBytes: Array[Byte]): Either[Throwa
         case SchemaType.DOUBLE =>
             val jsonString = String(jsonAsBytes, "UTF-8")
             val n = primitives.Doubles.tryParse(jsonString)
+            if n == null then return Left(new Exception(s"Unable to parse DOUBLE value from the given JSON: $jsonString"))
 
             val MinValue = Double.MinValue
             val MaxValue = Double.MaxValue

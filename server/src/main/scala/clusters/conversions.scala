@@ -61,7 +61,7 @@ object conversions:
             case _                                         => None
 
     def failureDomainToPb(failureDomain: FailureDomain): pb.FailureDomain =
-        pb.FailureDomain(brokers = failureDomain.getBrokers.asScala.toSeq)
+        pb.FailureDomain(brokers = Option(failureDomain.getBrokers).map(_.asScala.toSeq).getOrElse(Seq.empty))
 
     def failureDomainFromPb(failureDomain: pb.FailureDomain): FailureDomain =
         FailureDomain.builder.brokers(brokers = failureDomain.brokers.toSet.asJava).build
@@ -77,7 +77,7 @@ object conversions:
     def autoFailoverPolicyDataToPb(data: AutoFailoverPolicyData): pb.AutoFailoverPolicyData =
         pb.AutoFailoverPolicyData(
             policyType = autoFailoverPolicyTypeToPb(data.getPolicyType),
-            parameters = data.getParameters.asScala.toMap
+            parameters = Option(data.getParameters).map(_.asScala.toMap).getOrElse(Map.empty)
         )
 
     def autoFailoverPolicyTypeToPb(autoFailoverPolicyType: AutoFailoverPolicyType): pb.AutoFailoverPolicyType =
@@ -101,16 +101,16 @@ object conversions:
 
     def namespaceIsolationDataToPb(data: NamespaceIsolationData): pb.NamespaceIsolationData =
         pb.NamespaceIsolationData(
-            namespaces = data.getNamespaces.asScala.toSeq,
-            primary = data.getPrimary.asScala.toSeq,
-            secondary = data.getSecondary.asScala.toSeq,
+            namespaces = Option(data.getNamespaces).map(_.asScala.toSeq).getOrElse(Seq.empty),
+            primary = Option(data.getPrimary).map(_.asScala.toSeq).getOrElse(Seq.empty),
+            secondary = Option(data.getSecondary).map(_.asScala.toSeq).getOrElse(Seq.empty),
             autoFailoverPolicy = Option(data.getAutoFailoverPolicy).map(autoFailoverPolicyDataToPb)
         )
 
     def brokerNamespaceIsolationDataToPb(data: BrokerNamespaceIsolationData): pb.BrokerNamespaceIsolationData =
         pb.BrokerNamespaceIsolationData(
-            brokerName = data.getBrokerName,
-            policyName = data.getPolicyName,
+            brokerName = Option(data.getBrokerName).getOrElse(""),
+            policyName = Option(data.getPolicyName).getOrElse(""),
             isPrimary = data.isPrimary,
-            namespaceRegex = data.getNamespaceRegex.asScala.toSeq
+            namespaceRegex = Option(data.getNamespaceRegex).map(_.asScala.toSeq).getOrElse(Seq.empty)
         )
