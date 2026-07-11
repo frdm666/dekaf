@@ -6,6 +6,8 @@ import _root_.config.{Config, readConfig}
 import io.javalin.Javalin
 import io.javalin.rendering.template.JavalinFreemarker
 import io.javalin.http.staticfiles.{Location, StaticFileConfig}
+import org.eclipse.jetty.server.{Server, ServerConnector, HttpConnectionFactory, HttpConfiguration}
+import org.eclipse.jetty.http.UriCompliance
 
 import scala.jdk.CollectionConverters.*
 import _root_.pulsar_auth
@@ -29,6 +31,21 @@ object HttpServer:
             .create { config =>
                 JavalinFreemarker.init()
                 config.showJavalinBanner = false
+                // Default Jetty request-header cap is 8 KB; raise it so large cookie/auth headers
+                // injected by a reverse-proxy/ingress don't break asset loading and /health.
+                config.jetty.server { () =>
+                    val server = new Server()
+                    val httpConfig = new HttpConfiguration()
+                    // Mirror Javalin's own default connector so this differs from it ONLY in header size:
+                    httpConfig.setUriCompliance(UriCompliance.RFC3986)
+                    httpConfig.setSendServerVersion(false)
+                    httpConfig.setRequestHeaderSize(64 * 1024) // raised from Jetty's 8 KB default
+                    val connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig))
+                    connector.setHost(appConfig.bindAddress.get)
+                    connector.setPort(appConfig.internalHttpPort.get)
+                    server.addConnector(connector)
+                    server
+                }
                 config.staticFiles.add { (staticFiles: StaticFileConfig) =>
                     staticFiles.hostedPath = "/ui/static"
                     staticFiles.directory =
@@ -77,6 +94,6 @@ object HttpServer:
 
         _ <- ZIO.logInfo(s"HTTP server listening on ${bindAddress}:$port")
         app <- ZIO.attempt(createApp(config))
-        _ <- ZIO.attempt(app.start(bindAddress, port))
+        _ <- ZIO.attempt(app.start())
         _ <- ZIO.never
     yield ()

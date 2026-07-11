@@ -52,6 +52,9 @@ object GrpcServer:
 
     private def createGrpcServer(bindAddress: String, port: Int) = NettyServerBuilder
         .forAddress(new InetSocketAddress(bindAddress, port))
+        // Default grpc-java inbound metadata (header) cap is 8 KB; raise it so large cookie/auth
+        // headers injected by a reverse-proxy/ingress in front of Dekaf aren't rejected.
+        .maxInboundMetadataSize(64 * 1024)
 
         .addService(PulsarAuthServiceGrpc.bindService(PulsarAuthServiceImpl(), ExecutionContext.global))
         .addService(ProducerServiceGrpc.bindService(ProducerServiceImpl(), ExecutionContext.global))

@@ -38,6 +38,9 @@ static_resources:
                     "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
               codec_type: auto
               stat_prefix: ingress_http
+              # Match the backend header caps (gRPC maxInboundMetadataSize / Jetty requestHeaderSize = 64 KB);
+              # without this Envoy silently caps request headers at its 60 KB default.
+              max_request_headers_kb: 64
               route_config:
                 name: local_route
                 virtual_hosts:
