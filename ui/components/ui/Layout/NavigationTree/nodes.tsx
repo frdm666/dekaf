@@ -276,7 +276,7 @@ export const PulsarTopic: React.FC<PulsarTopicProps> = (props) => {
     return <></>;
   }
 
-  const { notifySuccess } = Notifications.useContext();
+  const { notifySuccess, notifyWarn } = Notifications.useContext();
 
   const resourceFqn = treeNode.topicFqn;
 
@@ -321,7 +321,7 @@ export const PulsarTopicPartition: React.FC<PulsarTopicPartitionProps> = (props)
     return <></>;
   }
 
-  const { notifySuccess } = Notifications.useContext();
+  const { notifySuccess, notifyWarn } = Notifications.useContext();
 
   const resourceFqn = treeNode.topicFqn;
 
