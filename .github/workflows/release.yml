@@ -95,8 +95,8 @@ jobs:
             echo "Tag $tag already exists" >&2; exit 1
           fi
 
-  # Each arch builds natively on its own runner (no QEMU) and pushes by digest
-  # only — no tag is published here. The merge job assembles the tag.
+  # Each arch builds natively on its own runner (no QEMU) and pushes a per-arch
+  # tag (VER-amd64 / VER-arm64); the merge job stitches them into the final tag.
   build:
     needs: prepare
     strategy:
@@ -123,26 +123,12 @@ jobs:
         if: matrix.arch == 'arm64'
         run: git lfs install --local && git lfs pull && git lfs uninstall --local
 
-      # cleanup: false keeps the docker-container builder (and its BuildKit cache)
-      # alive between runs on the persistent runner, so the nix-build / sbt-update
-      # layers are reused instead of re-downloaded every release.
-      - uses: docker/setup-buildx-action@v3
-        with:
-          name: dekaf-builder
-          cleanup: false
-
-      - name: Activate the persistent buildx builder
-        run: |
-          docker buildx use dekaf-builder \
-            || docker buildx create --name dekaf-builder --driver docker-container --use
-
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
       - name: Build dekaf (${{ matrix.platform }})
-        id: dekaf
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -150,10 +136,10 @@ jobs:
           platforms: ${{ matrix.platform }}
           pull: true
           provenance: false
-          outputs: type=image,name=${{ needs.prepare.outputs.dekaf_image }},push-by-digest=true,name-canonical=true,push=true
+          push: true
+          tags: ${{ needs.prepare.outputs.dekaf_image }}:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
 
       - name: Build demoapp (${{ matrix.platform }})
-        id: demoapp
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -161,31 +147,10 @@ jobs:
           platforms: ${{ matrix.platform }}
           pull: true
           provenance: false
-          outputs: type=image,name=${{ needs.prepare.outputs.demoapp_image }},push-by-digest=true,name-canonical=true,push=true
+          push: true
+          tags: ${{ needs.prepare.outputs.demoapp_image }}:${{ needs.prepare.outputs.version }}-${{ matrix.arch }}
 
-      - name: Export digests
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/digests/dekaf /tmp/digests/demoapp
-          d='${{ steps.dekaf.outputs.digest }}';   touch "/tmp/digests/dekaf/${d#sha256:}"
-          d='${{ steps.demoapp.outputs.digest }}'; touch "/tmp/digests/demoapp/${d#sha256:}"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: digests-dekaf-${{ matrix.arch }}
-          path: /tmp/digests/dekaf/*
-          if-no-files-found: error
-          retention-days: 1
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: digests-demoapp-${{ matrix.arch }}
-          path: /tmp/digests/demoapp/*
-          if-no-files-found: error
-          retention-days: 1
-
-  # Runs only after both arches built. Stitches the per-arch digests into the
+  # Runs only after both arches built. Stitches the per-arch tags into the
   # final multi-arch tags (atomic publish), then for real releases bumps the
   # quick-start compose pins, commits, tags, and pushes.
   merge:
@@ -208,19 +173,14 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: /tmp/digests
-          pattern: digests-*
-
       - name: Create multi-arch manifests
         shell: bash
         run: |
           set -euo pipefail
-          dekaf_refs=$(for f in /tmp/digests/digests-dekaf-*/*; do echo "${DEKAF_IMAGE}@sha256:$(basename "$f")"; done)
-          demoapp_refs=$(for f in /tmp/digests/digests-demoapp-*/*; do echo "${DEMOAPP_IMAGE}@sha256:$(basename "$f")"; done)
-          docker buildx imagetools create -t "${DEKAF_IMAGE}:${VER}"   $dekaf_refs
-          docker buildx imagetools create -t "${DEMOAPP_IMAGE}:${VER}" $demoapp_refs
+          docker buildx imagetools create -t "${DEKAF_IMAGE}:${VER}" \
+            "${DEKAF_IMAGE}:${VER}-amd64" "${DEKAF_IMAGE}:${VER}-arm64"
+          docker buildx imagetools create -t "${DEMOAPP_IMAGE}:${VER}" \
+            "${DEMOAPP_IMAGE}:${VER}-amd64" "${DEMOAPP_IMAGE}:${VER}-arm64"
           {
             echo "### Published \`${VER}\`"
             echo "- ${DEKAF_IMAGE}:${VER}"
