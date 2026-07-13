@@ -131,6 +131,11 @@ jobs:
           name: dekaf-builder
           cleanup: false
 
+      - name: Activate the persistent buildx builder
+        run: |
+          docker buildx use dekaf-builder \
+            || docker buildx create --name dekaf-builder --driver docker-container --use
+
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
