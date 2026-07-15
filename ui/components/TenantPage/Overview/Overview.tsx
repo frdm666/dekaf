@@ -21,6 +21,8 @@ import {
 import * as namespacePb from "../../../grpc-web/tools/teal/pulsar/ui/namespace/v1/namespace_pb";
 import A from "../../ui/A/A";
 import LibrarySidebar from "../../ui/LibrarySidebar/LibrarySidebar";
+import { useResizableSplit } from "../../ui/resizable/useResizableSplit";
+import PaneResizeHandle from "../../ui/resizable/PaneResizeHandle";
 import { LibraryContext } from "../../ui/LibraryBrowser/model/library-context";
 import FormItem from "../../ui/ConfigurationTable/FormItem/FormItem";
 import FormLabel from "../../ui/ConfigurationTable/FormLabel/FormLabel";
@@ -33,6 +35,7 @@ export type ConfigurationProps = {
 };
 
 const Configuration: React.FC<ConfigurationProps> = (props) => {
+  const split = useResizableSplit('overview-split', { defaultRatio: 0.5 });
   const { clustersServiceClient, tenantServiceClient, namespaceServiceClient } =
     GrpcClient.useContext();
   const { notifyError } = Notifications.useContext();
@@ -278,7 +281,7 @@ const Configuration: React.FC<ConfigurationProps> = (props) => {
   );
 
   return (
-    <div className={s.Overview}>
+    <div className={s.Overview} style={{ gridTemplateColumns: `${split.ratio * 100}% 7rem minmax(0, 1fr)` }}>
       <div className={s.LeftPanel}>
         <div style={{ marginBottom: '24rem' }}>
           <table className={st.Table} style={{ width: '100%' }}>
@@ -330,6 +333,7 @@ const Configuration: React.FC<ConfigurationProps> = (props) => {
         </FormItem>
       </div>
 
+      <PaneResizeHandle onResizeStart={split.startResize} />
       <div className={s.RightPanel}>
         <LibrarySidebar
           libraryContext={props.libraryContext}

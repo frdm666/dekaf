@@ -10,13 +10,16 @@ import { H2 } from "../../ui/H/H";
 import * as HealthCheckContext from '../../app/contexts/HealthCheckContext/HealthCheckContext';
 import NoData from "../../ui/NoData/NoData";
 import LibrarySidebar from "../../ui/LibrarySidebar/LibrarySidebar";
+import { useResizableSplit } from "../../ui/resizable/useResizableSplit";
+import PaneResizeHandle from "../../ui/resizable/PaneResizeHandle";
 
 const Overview: React.FC = () => {
+  const split = useResizableSplit('overview-split', { defaultRatio: 0.5 });
   const { config } = AppContext.useContext();
   const { brokerVersion } = HealthCheckContext.useContext();
 
   return (
-    <div className={s.Overview}>
+    <div className={s.Overview} style={{ gridTemplateColumns: `${split.ratio * 100}% 7rem minmax(0, 1fr)` }}>
       <div className={s.LeftPanel}>
         <div className={s.Section}>
           <div className={s.SubSection}>
@@ -88,6 +91,7 @@ const Overview: React.FC = () => {
         </div>
       </div>
 
+      <PaneResizeHandle onResizeStart={split.startResize} />
       <div className={s.RightPanel}>
         <LibrarySidebar
           libraryContext={{

@@ -1,0 +1,27 @@
+.ColumnResizeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7rem;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  z-index: 3;
+}
+
+.ColumnResizeHandle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 2rem;
+  background-color: transparent;
+  transition: background-color 0.1s ease-in-out;
+}
+
+.ColumnResizeHandle:hover::after,
+.ColumnResizeHandle:active::after {
+  background-color: var(--accent-color-blue);
+}

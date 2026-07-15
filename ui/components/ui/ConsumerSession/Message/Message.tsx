@@ -5,6 +5,7 @@ import { ConsumerSessionConfig, MessageDescriptor, SessionState } from '../types
 import { Coloring } from '../coloring';
 import { getValueProjectionTds, ValueProjectionTh } from '../value-projections/value-projections-utils';
 import { Td } from './Td';
+import { MessageColumnKey } from '../message-columns';
 
 export type MessageProps = {
   isShowTooltips: boolean;
@@ -14,6 +15,7 @@ export type MessageProps = {
   coloring: Coloring;
   sessionConfig: ConsumerSessionConfig;
   valueProjectionThs: ValueProjectionTh[],
+  getColumnWidth: (key: MessageColumnKey) => number,
   onClick: React.MouseEventHandler<HTMLTableCellElement>
 };
 
@@ -42,7 +44,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="publishTime"
-        width="180rem"
+        width={`${props.getColumnWidth('publishTime')}px`}
         className={s.PublishTimeField}
         onClick={onClick}
         coloring={props.coloring}
@@ -53,7 +55,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="key"
-        width='20ch'
+        width={`${props.getColumnWidth('key')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -71,7 +73,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="value"
-        width='30ch'
+        width={`${props.getColumnWidth('value')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -81,7 +83,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="sessionTargetIndex"
-        width='5ch'
+        width={`${props.getColumnWidth('sessionTargetIndex')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -91,7 +93,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="topic"
-        width='60ch'
+        width={`${props.getColumnWidth('topic')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -101,7 +103,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="producerName"
-        width='50ch'
+        width={`${props.getColumnWidth('producerName')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -111,7 +113,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="schemaVersion"
-        width='8ch'
+        width={`${props.getColumnWidth('schemaVersion')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -121,7 +123,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="size"
-        width='12ch'
+        width={`${props.getColumnWidth('size')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -131,7 +133,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="properties"
-        width='30ch'
+        width={`${props.getColumnWidth('properties')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -141,7 +143,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="eventTime"
-        width='30ch'
+        width={`${props.getColumnWidth('eventTime')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -151,7 +153,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="brokerPublishTime"
-        width='30ch'
+        width={`${props.getColumnWidth('brokerPublishTime')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -161,7 +163,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="message"
-        width='40ch'
+        width={`${props.getColumnWidth('messageId')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -171,7 +173,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="sequence"
-        width='10ch'
+        width={`${props.getColumnWidth('sequenceId')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -181,7 +183,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="ordering"
-        width='10ch'
+        width={`${props.getColumnWidth('orderingKey')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -191,7 +193,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="redeliveryCount"
-        width='10ch'
+        width={`${props.getColumnWidth('redeliveryCount')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}
@@ -201,7 +203,7 @@ const MessageComponent: React.FC<MessageProps> = (props) => {
 
       <Td
         key="sessionContextState"
-        width='50ch'
+        width={`${props.getColumnWidth('sessionContextState')}px`}
         onClick={onClick}
         coloring={props.coloring}
         isSelected={isSelected}

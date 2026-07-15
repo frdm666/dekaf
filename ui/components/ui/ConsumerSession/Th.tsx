@@ -4,10 +4,11 @@ import { Sort, SortKey } from "./sort";
 import arrowDownIcon from '../../ui/ChildrenTable/arrow-down.svg';
 import arrowUpIcon from '../../ui/ChildrenTable/arrow-up.svg';
 import SvgIcon from '../SvgIcon/SvgIcon';
-import { FC } from "react";
+import { FC, MutableRefObject } from "react";
 import s from './ConsumerSession.module.css'
 import cts from "../../ui/ChildrenTable/ChildrenTable.module.css";
 import { isEqual } from "lodash";
+import ColumnResizeHandle from "../resizable/ColumnResizeHandle";
 
 export type ThProps = {
   title: React.ReactNode,
@@ -15,13 +16,20 @@ export type ThProps = {
   sort: Sort,
   setSort: (v: Sort) => void,
   sortKey?: SortKey,
-  style?: React.CSSProperties
+  style?: React.CSSProperties,
+  width?: number,
+  onResizeStart?: (startClientX: number) => void,
+  suppressSortClickRef?: MutableRefObject<boolean>
 };
 
 export const Th: FC<ThProps> = (props: ThProps) => {
   const isSortedByThisColumn = isEqual(props.sort.key, props.sortKey);
 
   const handleColumnHeaderClick = () => {
+    if (props.suppressSortClickRef?.current) {
+      return;
+    }
+
     if (props.sortKey === undefined) {
       return;
     }
@@ -37,6 +45,7 @@ export const Th: FC<ThProps> = (props: ThProps) => {
     <th className={`${cts.Th} ${s.Th}`} style={props.style} onClick={handleColumnHeaderClick}>
       <div
         className={props.sortKey === undefined ? '' : cts.SortableTh}
+        style={props.width === undefined ? undefined : { width: props.width, overflow: 'hidden' }}
         data-tooltip-id={tooltipId}
         data-tooltip-html={renderToStaticMarkup(props.help)}
       >
@@ -48,6 +57,8 @@ export const Th: FC<ThProps> = (props: ThProps) => {
           </div>
         )}
       </div>
+
+      {props.onResizeStart && <ColumnResizeHandle onResizeStart={props.onResizeStart} />}
     </th>
   );
 };

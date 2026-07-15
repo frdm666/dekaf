@@ -15,6 +15,8 @@ import Td from '../../ui/SimpleTable/Td';
 import InternalStatistics from './InternalStatistics/InternalStatistics';
 import { PulsarTopicPersistency } from '../../pulsar/pulsar-resources';
 import LibrarySidebar from '../../ui/LibrarySidebar/LibrarySidebar';
+import { useResizableSplit } from '../../ui/resizable/useResizableSplit';
+import PaneResizeHandle from '../../ui/resizable/PaneResizeHandle';
 import { LibraryContext } from '../../ui/LibraryBrowser/model/library-context';
 import TopicPropertiesEditor from './TopicPropertiesEditor/TopicPropertiesEditor';
 import { PartitioningWithActivePartitions } from '../TopicPage';
@@ -43,6 +45,7 @@ type TabKey = 'stats' | 'stats-internal';
 type Partitioning = 'partitioned' | 'non-partitioned' | 'partition';
 
 const Overview: React.FC<OverviewProps> = (props) => {
+  const split = useResizableSplit('overview-split', { defaultRatio: 0.5 });
   const modals = Modals.useContext();
   const { notifyError } = Notifications.useContext();
   const { topicServiceClient } = GrpcClient.useContext();
@@ -106,7 +109,7 @@ const Overview: React.FC<OverviewProps> = (props) => {
 
   return (
     <div className={s.Overview}>
-      <div className={s.LeftPanel}>
+      <div className={s.LeftPanel} style={{ flex: `0 0 ${split.ratio * 100}%` }}>
         <div className={s.MainStatistics}>
           <table className={st.Table} style={{width: '100%'}}>
             <tbody>
@@ -271,7 +274,8 @@ const Overview: React.FC<OverviewProps> = (props) => {
           </div>
         </div>
       </div>
-      <div className={s.RightPanel}>
+      <PaneResizeHandle onResizeStart={split.startResize} />
+      <div className={s.RightPanel} style={{ flex: '1 1 0' }}>
         <LibrarySidebar libraryContext={props.libraryContext}/>
       </div>
     </div>

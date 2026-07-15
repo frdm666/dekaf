@@ -34,6 +34,8 @@ import { LibraryContext } from '../LibraryBrowser/model/library-context';
 import { getColoring } from './coloring';
 import { getValueProjectionThs } from './value-projections/value-projections-utils';
 import { Th } from './Th';
+import { useColumnWidths } from '../resizable/useColumnWidths';
+import { MessageColumnKey, messageColumnDefaultWidths } from './message-columns';
 import MessageDetails from './Message/MessageDetails/MessageDetails';
 import ActionButton from '../ActionButton/ActionButton';
 import { handleKeyDown } from './keyboard';
@@ -77,6 +79,13 @@ const Session: React.FC<SessionProps> = (props) => {
   const [messages, setMessages] = useState<MessageDescriptor[]>([]);
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
   const [sort, setSort] = useState<Sort>({ key: 'publishTime', direction: 'asc' });
+  const { getWidth: getColumnWidth, startResize: startColumnResize, suppressSortClickRef } =
+    useColumnWidths<MessageColumnKey>('consumer-session-messages', messageColumnDefaultWidths);
+  const resizeProps = (key: MessageColumnKey) => ({
+    width: getColumnWidth(key),
+    onResizeStart: (x: number) => startColumnResize(key, x),
+    suppressSortClickRef,
+  });
   const [_searchInResults, setSearchInResults] = useState<string>('');
   const [searchInResults] = useDebounce(_searchInResults, 1000);
 
@@ -327,6 +336,7 @@ const Session: React.FC<SessionProps> = (props) => {
         selectedMessages={selectedMessages}
         coloring={coloring}
         valueProjectionThs={valueProjectionThs}
+        getColumnWidth={getColumnWidth}
         onClick={() => {
           if (sessionState !== 'paused') {
             setSessionState('pausing');
@@ -340,7 +350,7 @@ const Session: React.FC<SessionProps> = (props) => {
         }}
       />
     );
-  }, [sessionState, config, selectedMessages]);
+  }, [sessionState, config, selectedMessages, getColumnWidth]);
 
   const onWheel = useCallback<React.WheelEventHandler<HTMLDivElement>>((e) => {
     if (e.deltaY < 0 && sessionState === 'running') {
@@ -451,6 +461,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     sortKey="publishTime"
                     style={{ position: 'sticky', left: remToPx(60), zIndex: 10 }}
                     help={help.publishTime}
+                    {...resizeProps('publishTime')}
                   />
                   <Th
                     key="key"
@@ -459,6 +470,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="key"
                     help={help.key}
+                    {...resizeProps('key')}
                   />
 
                   {valueProjectionThs.map(vp => vp.th)}
@@ -470,6 +482,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="value"
                     help={help.value}
+                    {...resizeProps('value')}
                   />
                   <Th
                     key="target"
@@ -478,6 +491,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="sessionTargetIndex"
                     help={help.sessionTargetIndex}
+                    {...resizeProps('sessionTargetIndex')}
                   />
                   <Th
                     key="topic"
@@ -486,6 +500,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="topic"
                     help={help.topic}
+                    {...resizeProps('topic')}
                   />
                   <Th
                     key="producer"
@@ -494,6 +509,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="producerName"
                     help={help.producerName}
+                    {...resizeProps('producerName')}
                   />
                   <Th
                     key="schemaVersion"
@@ -502,6 +518,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="schemaVersion"
                     help={help.schemaVersion}
+                    {...resizeProps('schemaVersion')}
                   />
                   <Th
                     key="size"
@@ -510,6 +527,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="size"
                     help={help.size}
+                    {...resizeProps('size')}
                   />
                   <Th
                     key="properties"
@@ -518,6 +536,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="properties"
                     help={help.propertiesMap}
+                    {...resizeProps('properties')}
                   />
                   <Th
                     key="eventTime"
@@ -526,6 +545,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="eventTime"
                     help={help.eventTime}
+                    {...resizeProps('eventTime')}
                   />
                   <Th
                     key="brokerPublishTime"
@@ -534,6 +554,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="brokerPublishTime"
                     help={help.brokerPublishTime}
+                    {...resizeProps('brokerPublishTime')}
                   />
                   <Th
                     key="messageId"
@@ -541,6 +562,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     sort={sort}
                     setSort={setSort}
                     help={help.messageId}
+                    {...resizeProps('messageId')}
                   />
                   <Th
                     key="sequenceId"
@@ -549,6 +571,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="sequenceId"
                     help={help.sequenceId}
+                    {...resizeProps('sequenceId')}
                   />
                   <Th
                     key="orderingKey"
@@ -556,6 +579,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     sort={sort}
                     setSort={setSort}
                     help={help.orderingKey}
+                    {...resizeProps('orderingKey')}
                   />
                   <Th
                     key="redeliveryCount"
@@ -564,6 +588,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="redeliveryCount"
                     help={help.redeliveryCount}
+                    {...resizeProps('redeliveryCount')}
                   />
                   <Th
                     key="sessionContextState"
@@ -572,6 +597,7 @@ const Session: React.FC<SessionProps> = (props) => {
                     setSort={setSort}
                     sortKey="sessionContextStateJson"
                     help={help.sessionContextStateJson}
+                    {...resizeProps('sessionContextState')}
                   />
                 </tr>
               )}

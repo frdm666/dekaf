@@ -11,6 +11,8 @@ import * as Notifications from "../../app/contexts/Notifications";
 import * as pbUtils from "../../../proto-utils/proto-utils";
 import { LibraryContext } from '../../ui/LibraryBrowser/model/library-context';
 import LibrarySidebar from '../../ui/LibrarySidebar/LibrarySidebar';
+import { useResizableSplit } from '../../ui/resizable/useResizableSplit';
+import PaneResizeHandle from '../../ui/resizable/PaneResizeHandle';
 import { NamespacePropertiesEditor } from './NamespacePropertiesEditor/NamespacePropertiesEditor';
 
 type TopicCountDataEntry = {
@@ -28,6 +30,7 @@ export type OverviewProps = {
 };
 
 const Overview: React.FC<OverviewProps> = (props) => {
+  const split = useResizableSplit('overview-split', { defaultRatio: 0.5 });
   const namespaceFqn = `${props.tenant}/${props.namespace}`;
   const { notifyError } = Notifications.useContext();
   const { namespaceServiceClient } = GrpcClient.useContext();
@@ -85,7 +88,7 @@ const Overview: React.FC<OverviewProps> = (props) => {
   );
 
   return (
-    <div className={s.Overview}>
+    <div className={s.Overview} style={{ gridTemplateColumns: `${split.ratio * 100}% 7rem minmax(0, 1fr)` }}>
       <div className={s.LeftPanel}>
         <div className={`${s.Section} ${s.StatisticsSection}`}>
           <table className={`${st.Table} ${s.Table}`} style={{ width: '100%' }}>
@@ -155,6 +158,7 @@ const Overview: React.FC<OverviewProps> = (props) => {
           />
         </div>
       </div>
+      <PaneResizeHandle onResizeStart={split.startResize} />
       <div className={s.RightPanel}>
         <LibrarySidebar
           libraryContext={props.libraryContext}

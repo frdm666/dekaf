@@ -6,6 +6,8 @@ import SvgIcon from '../SvgIcon/SvgIcon';
 import arrowDownIcon from './arrow-down.svg';
 import arrowUpIcon from './arrow-up.svg';
 import { useDebounce } from 'use-debounce';
+import { useColumnWidths, ColumnConstraint } from '../resizable/useColumnWidths';
+import ColumnResizeHandle from '../resizable/ColumnResizeHandle';
 import * as Notifications from '../../app/contexts/Notifications';
 import useSWR, { SWRConfiguration, mutate } from 'swr';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -108,6 +110,20 @@ function Table<CK extends ColumnKey, DE, LD>(props: TableProps<CK, DE, LD>): Rea
   const [filtersInUse, setFiltersInUse] = useState<FiltersInUse<CK>>(props.defaultFiltersInUse ?? {});
   const [filtersInUseDebounced] = useDebounce(filtersInUse, 400);
 
+  const columnDefaultWidths = useMemo(
+    () => Object.fromEntries(props.columns.defaultConfig.map(c => [c.columnKey, c.width])) as Record<CK, number>,
+    [props.columns.defaultConfig]
+  );
+  const columnConstraints = useMemo(
+    () => Object.fromEntries(
+      Object.entries(props.columns.columns).map(([ck, col]) =>
+        [ck, { minWidth: (col as Column<DE, LD>)?.minWidth, maxWidth: (col as Column<DE, LD>)?.maxWidth }])
+    ) as Partial<Record<CK, ColumnConstraint>>,
+    [props.columns.columns]
+  );
+  const { getWidth: getColumnWidth, startResize: startColumnResize, suppressSortClickRef } =
+    useColumnWidths<CK>(props.tableId, columnDefaultWidths, columnConstraints);
+
   const i18n = I18n.useContext();
 
   const swrOptions: SWRConfiguration = {
@@ -171,6 +187,9 @@ function Table<CK extends ColumnKey, DE, LD>(props: TableProps<CK, DE, LD>): Rea
   };
   const Th = useMemo(() => (thProps: ThProps) => {
     const handleColumnHeaderClick = () => {
+      if (suppressSortClickRef.current) {
+        return;
+      }
       if (!thProps.isSortable) {
         return;
       }
@@ -248,9 +267,11 @@ function Table<CK extends ColumnKey, DE, LD>(props: TableProps<CK, DE, LD>): Rea
             </div>
           </div>
         </div>
+
+        <ColumnResizeHandle onResizeStart={(clientX) => startColumnResize(thProps.columnKey, clientX)} />
       </th>
     );
-  }, [sort, props.columns, filtersInUse]);
+  }, [sort, props.columns, filtersInUse, startColumnResize]);
 
   const sortedData = useMemo(() => {
     const activeFilters = Object.entries<FilterInUse>(filtersInUseDebounced as Record<string, FilterInUse>).filter(([_, filter]) => {
@@ -353,7 +374,7 @@ function Table<CK extends ColumnKey, DE, LD>(props: TableProps<CK, DE, LD>): Rea
                     columnKey={columnConfig.columnKey}
                     isSortable={Boolean(props.columns.columns[columnConfig.columnKey]!.sortFn)}
                     filter={props.columns.columns[columnConfig.columnKey]!.filter}
-                    style={{ width: columnConfig.width, ...style }}
+                    style={{ width: getColumnWidth(columnConfig.columnKey), ...style }}
                   />
                 );
               })}
@@ -376,7 +397,7 @@ function Table<CK extends ColumnKey, DE, LD>(props: TableProps<CK, DE, LD>): Rea
                       className={`${s.Td}`}
                       style={style}
                     >
-                      <div className={`${s.TdContent} ${(isLoading && isLazy) ? s.LoadingPattern : ''}`} style={{ width: columnConfig.width }} title={typeof v === 'string' ? v : undefined}>
+                      <div className={`${s.TdContent} ${(isLoading && isLazy) ? s.LoadingPattern : ''}`} style={{ width: getColumnWidth(columnConfig.columnKey) }} title={typeof v === 'string' ? v : undefined}>
                         {(isLoading && isLazy) ? <div className={s.LoadingPlaceholder} /> : null}
                         {(v === undefined && !isLoading) ? (
                           <div className={s.NoData}>-</div>
