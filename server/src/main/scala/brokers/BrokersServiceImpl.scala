@@ -161,8 +161,7 @@ class BrokersServiceImpl extends pb.BrokersServiceGrpc.BrokersService {
             case Resource.SubscriptionResource(value) =>
                 Try(adminClient.topics.getSubscriptionProperties(resourceFqn, value.subscriptionName)).isSuccess
             case Resource.SchemaResource(value) =>
-                Try(adminClient.schemas.getSchemaInfoWithVersion(resourceFqn).getVersion == value.schemaVersion)
-                    .getOrElse(false)
+                Try(adminClient.schemas.getSchemaInfo(resourceFqn, value.schemaVersion)).isSuccess
             case Resource.Empty =>
                 return failWithMessage("Resource type should be specified")
 
